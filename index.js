@@ -2,7 +2,7 @@
  * Export spiderRequest (with )
  */
 
-exports = module.exports = require('./lib/spiderRequest');
+exports = module.exports = require('./libs/spiderRequest');
 
 /*
   Export the version

@@ -4,6 +4,7 @@
 const request = require('request');
 const cheerio = require('cheerio');
 const iconv = require('iconv-lite');
+
 class spiderRequest{
     constructor({
         url='',
@@ -22,25 +23,24 @@ class spiderRequest{
         this.timeout=timeout;
         this.result={};
     }
-    getValue($ele,type='',attrName=''){
+    getValue($ele,type='',attrName='',trimType){
+        let self = this;
         switch(type.toLowerCase()){
-            case 'text': return $ele.text();
-            case 'html': return $ele.html();
-            case 'attr': return $ele.attr(attrName);
-            case 'data': return $ele.data(attrName);
+            case 'text': return self.trimValue($ele.text(),trimType);
+            case 'html': return self.trimValue($ele.html(),trimType);
+            case 'attr': return self.trimValue($ele.attr(attrName),trimType);
+            case 'data': return self.trimValue($ele.data(attrName),trimType);
             default: return '';
         }
     }
-    getValues($ele,valueConfigs){
-        let self = this;
-        let ret = {};
-        if(Array.isArray(valueConfigs)){
-            return self.getValue($ele,valueConfigs[0],valueConfigs[1]);
-        }else if(typeof valueConfigs === 'object'){
-            for(let [k,v] of Object.entries(valueConfigs)){
-                ret[k] = self.getValue($ele,v[0],v[1]);
-            }
-            return ret;
+    trimValue(value,trimType){
+        console.log(value,trimType);
+        if(!trimType || typeof value !== 'string') return value;
+        switch(trimType.toLowerCase()){
+            case "left" : return value.trimLeft();
+            case "right" : return value.trimRight();
+            case "all" : return value.trim();
+            default : return value
         }
     }
     getEle($ele,selector,eq){
@@ -51,62 +51,33 @@ class spiderRequest{
         if(!isNaN(eq)){
             $newEle = $newEle.eq(eq);
         }
+        console.log(selector,$newEle.length);
         return $newEle;
     }
-    getResult($ele,settings){
-        let self = this;
-        let curVal=[],childVal = [];
-        let $curEle = self.getEle($ele,settings.selector,settings.eq);
-        if($curEle.length===1){
-            if(settings.value){
-                curVal.push(self.getValues($curEle,settings.value));
-            }
-            if(settings.children){
-                let o = {};
-                for(let [key,value] of Object.entries(settings.children)){
-                    o[key] = self.getResult($curEle,value)
-                }
-                childVal.push(o);
-            }
-        }else if($curEle.length>1){
-            for(let i=0;i<$curEle.length;i++){
-                if(settings.value){
-                    curVal.push(self.getValues($curEle.eq(i),settings.value));
-                }
-                if(settings.children){
-                    let o ={};
-                    for(let [key,value] of Object.entries(settings.children)){
-                        o[key] = self.getResult($curEle.eq(i),value);
-                    }
-                    childVal.push(o);
-                }
+    getNodeData($ele,settings){
+        //console.log(settings);
+        let self = this,
+            ret,
+            name = settings.name,
+            value = settings.value?settings.value:[],
+            trimType = settings.trim,
+            $curEle = self.getEle($ele,settings.selector,settings.eq);
+        if(value.length<1 || !$curEle) return ret;
+        ret = [];
+        for(let i=0;i<$curEle.length;i++){
+            let $myEle = $curEle.eq(i);
+            if(typeof value[0] === "object"){
+                let o ={};
+                value.forEach((obj,index)=>{
+                    let oname = obj.name;
+                    o[oname] = self.getNodeData($myEle,obj)[oname];
+                });
+                ret.push(o);
+            }else if(typeof value[0] === "string") {
+                ret.push(self.getValue($myEle, value[0], value[1],trimType));
             }
         }
-
-        if(childVal.length===1){
-            if(curVal.length===0){
-                return childVal[0];
-            }else if(curVal.length===1){
-                return [curVal[0],childVal[0]];
-            }else if(curVal.length>1){
-                return [curVal,childVal[0]];
-            }
-        }else if(childVal.length>1){
-            if(curVal.length===0){
-                return childVal;
-            }else if(curVal.length===1){
-                return [curVal[0],childVal];
-            }else if(curVal.length>1){
-                return [curVal,childVal];
-            }
-        }else{
-            if(curVal.length===1){
-                return curVal[0];
-            }else if(curVal.length>1){
-                return curVal;
-            }
-
-        }
+        return {[name]:ret.length>1?ret:ret[0]};
     }
     getContent(){
         let self = this;
@@ -116,8 +87,8 @@ class spiderRequest{
                 .then(function(res){
                     let body = iconv.decode(res.body, self.encode);
                     let $ = cheerio.load(body,{decodeEntities: false});
-                    ret = self.getResult($('body'),self.content);
-                    ret?ret['url']= self.url:{'url':self.url};
+                    ret = self.getNodeData($('html'),self.content);
+                    ret?ret['location']= self.url:{'location':self.url};
                     resolve(ret);
                 })
                 .catch((err)=>{
@@ -139,7 +110,6 @@ class spiderRequest{
                         }else{
                             doRequest(++num);
                         }
-
                     })
             })();
         });
