@@ -1,0 +1,20 @@
+{
+  "name": "spiderrequest",
+  "version": "1.0.0",
+  "description": "spdier request",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "spider",
+    "request"
+  ],
+  "author": "youthfighter",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.2",
+    "iconv-lite": "^0.4.19",
+    "request": "^2.83.0"
+  }
+}
