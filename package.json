@@ -1,6 +1,6 @@
 {
   "name": "spiderrequest",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "github":"https://github.com/youthfighter/spiderRequest.git",
   "description": "spdier request",
   "main": "index.js",

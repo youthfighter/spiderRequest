@@ -34,7 +34,6 @@ class spiderRequest{
         }
     }
     trimValue(value,trimType){
-        console.log(value,trimType);
         if(!trimType || typeof value !== 'string') return value;
         switch(trimType.toLowerCase()){
             case "left" : return value.trimLeft();
@@ -55,7 +54,6 @@ class spiderRequest{
         return $newEle;
     }
     getNodeData($ele,settings){
-        //console.log(settings);
         let self = this,
             ret,
             name = settings.name,
