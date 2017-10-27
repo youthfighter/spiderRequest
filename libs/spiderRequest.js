@@ -23,23 +23,20 @@ class spiderRequest{
         this.timeout=timeout;
         this.result={};
     }
-    getValue($ele,type='',attrName='',trimType){
+    getValue($ele,type='',attrName='',machining){
         let self = this;
+        let result;
         switch(type.toLowerCase()){
-            case 'text': return self.trimValue($ele.text(),trimType);
-            case 'html': return self.trimValue($ele.html(),trimType);
-            case 'attr': return self.trimValue($ele.attr(attrName),trimType);
-            case 'data': return self.trimValue($ele.data(attrName),trimType);
-            default: return '';
+            case 'text': result = $ele.text();break;
+            case 'html': result = $ele.html();break;
+            case 'attr': result = $ele.attr(attrName);break;
+            case 'data': result = $ele.data(attrName);break;
+            default: result = '';break;
         }
-    }
-    trimValue(value,trimType){
-        if(!trimType || typeof value !== 'string') return value;
-        switch(trimType.toLowerCase()){
-            case "left" : return value.trimLeft();
-            case "right" : return value.trimRight();
-            case "all" : return value.trim();
-            default : return value
+        if(machining && typeof machining === 'function'){
+            return machining(result,self.url);
+        }else{
+            return result;
         }
     }
     getEle($ele,selector,eq){
@@ -50,7 +47,6 @@ class spiderRequest{
         if(!isNaN(eq)){
             $newEle = $newEle.eq(eq);
         }
-        console.log(selector,$newEle.length);
         return $newEle;
     }
     getNodeData($ele,settings){
@@ -58,7 +54,7 @@ class spiderRequest{
             ret,
             name = settings.name,
             value = settings.value?settings.value:[],
-            trimType = settings.trim,
+            machining = settings.machining,
             $curEle = self.getEle($ele,settings.selector,settings.eq);
         if(value.length<1 || !$curEle) return ret;
         ret = [];
@@ -72,7 +68,7 @@ class spiderRequest{
                 });
                 ret.push(o);
             }else if(typeof value[0] === "string") {
-                ret.push(self.getValue($myEle, value[0], value[1],trimType));
+                ret.push(self.getValue($myEle, value[0], value[1],machining));
             }
         }
         return {[name]:ret.length>1?ret:ret[0]};
