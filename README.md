@@ -4,7 +4,7 @@ spiderRequest
 
 通过简单的设置配置文件，获取扒取网页信息，返回数据。
 
-## Get Started
+## 起步
 下面看一个简单的例子，只需设置几个简单的属性，就可以得到想要的到的数据。
 ```javascript
 //引用spiderRequest
@@ -26,7 +26,7 @@ new spiderRequest(config).getContent()
     });
 //输出{ btn: '百度一下', location: 'https://www.baidu.com/' }
 ```
-## options
+## 配置
 1. name:扒取数据最终以json的形式返回，那么是value获取值对应的key。
 2. selector:获取对应的dom节点，遵守[cheerio](https://www.npmjs.com/package/cheerio)的语法，与jquery获取dom节点类似。需要注意的是，其实在上级dom节点的基础上找子节点。
 3. eq:如果通过selector获取的dom节点有多个,通过设置eq的值确定获取那个dom节点。
@@ -42,3 +42,7 @@ new spiderRequest(config).getContent()
 	return 'test:'+value; 
 }
 ```
+
+## 接口
+getContent：才用es6的promise语法，通过`new spiderRequest(config)`初始化spiderRequest对象，并通过调用`getContent`方法获取爬取的
+数据，该方法返回一个promise对象。
